@@ -9,4 +9,9 @@ public interface LevelGenerator {
 	
 	public LevelInterface generateLevel (GamePlay playerMetrics);
 	public LevelInterface generateLevel (String detailedInfo);
+
+
+
+
+	
 }
