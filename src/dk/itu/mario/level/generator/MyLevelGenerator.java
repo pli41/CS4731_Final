@@ -12,7 +12,15 @@ import dk.itu.mario.level.MyLevel;
 public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelGenerator{
 
 	public LevelInterface generateLevel(GamePlay playerMetrics) {
-		LevelInterface level = new MyLevel(320,15,new Random().nextLong(),1,LevelInterface.TYPE_OVERGROUND,playerMetrics);
+
+		//width, height, long seed, difficulty, type, playerMetrics
+
+		//need to calculate difficulty here based on number of death
+		//if death number is too big, need to lower it.
+		
+
+		LevelInterface level = new MyLevel(320,15,new Random().nextLong(),2,
+			LevelInterface.TYPE_OVERGROUND,playerMetrics);
 		return level;
 	}
 

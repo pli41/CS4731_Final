@@ -17,6 +17,15 @@ public class MyLevel extends Level{
 	 public   int BLOCKS_POWER = 0; // the number of power blocks
 	 public   int COINS = 0; //These are the coins in boxes that Mario collect
 
+	 //playerInfo
+
+	 public float collector;
+	 public float hunter;
+	 public float rusher;
+	 public float jumper;
+	 public float destroyer;
+
+
  
 	private static Random levelSeedRandom = new Random();
 	    public static long lastSeed;
@@ -37,6 +46,26 @@ public class MyLevel extends Level{
 		public MyLevel(int width, int height, long seed, int difficulty, int type, GamePlay playerMetrics)
 	    {
 	        this(width, height);
+	        //jumper
+
+	        //collector
+	        collector = (playerMetrics.coinsCollected/playerMetrics.totalCoins + 
+	        	playerMetrics.percentageCoinBlocksDestroyed) / 2;
+
+	        //Hunter
+	        hunter = (playerMetrics.RedTurtlesKilled+playerMetrics.GreenTurtlesKilled
+	        	+playerMetrics.ArmoredTurtlesKilled+playerMetrics.GoombasKilled
+	        	+playerMetrics.CannonBallKilled+playerMetrics.JumpFlowersKilled
+	        	+playerMetrics.ChompFlowersKilled) / playerMetrics.totalEnemies;
+
+	        //Destroyer
+	        destroyer = playerMetrics.percentageBocksDesotroyed;
+
+	        //Rusher
+	        system.out.println(playerMetrics.completionTime);
+
+
+
 	        creat(seed, difficulty, type);
 	    }
 
@@ -47,6 +76,10 @@ public class MyLevel extends Level{
 
 	        lastSeed = seed;
 	        random = new Random(seed);
+
+
+
+
 
 	        //create the start location
 	        int length = 0;
