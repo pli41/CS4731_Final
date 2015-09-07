@@ -26,13 +26,15 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}">
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="false">
       <classpath>
          <!-- 
 		 <fileset dir="${lib}">
            <include name="**/*.jar" />
          </fileset>
 		 -->
+        <pathelement path="${classpath}"/>
+        <pathelement location="lib/jsci-core.jar"/>
       </classpath>
     </javac>
   </target>
@@ -41,10 +43,12 @@
     <!-- Create the distribution directory -->
     <java classname="ch.idsia.scenarios.Play" dir="${build}" failonerror="false" fork="true">
       <classpath>
-         <fileset dir="${lib}">
-           <include name="**/*.jar" />
-         </fileset>
-           <pathelement location="${build}" />
+        <fileset dir="${lib}">
+          <include name="**/*.jar" />
+        </fileset>
+        <pathelement location="${build}" />
+        <pathelement path="${classpath}"/>
+        <pathelement location="lib/jsci-core.jar"/>
       </classpath>
     </java>
   </target>

@@ -7,7 +7,7 @@ import dk.itu.mario.MarioInterface.GamePlay;
 import dk.itu.mario.MarioInterface.LevelInterface;
 import dk.itu.mario.engine.sprites.SpriteTemplate;
 import dk.itu.mario.engine.sprites.Enemy;
-
+import JSci.maths.statistics.*;
 
 public class MyLevel extends Level{
 	//Store information about the level
@@ -30,9 +30,7 @@ public class MyLevel extends Level{
 	private static Random levelSeedRandom = new Random();
 	    public static long lastSeed;
 
-	    Random random;
-
-  
+	    Random random;  
 	    private int difficulty;
 	    private int type;
 		private int gaps;
@@ -46,23 +44,67 @@ public class MyLevel extends Level{
 		public MyLevel(int width, int height, long seed, int difficulty, int type, GamePlay playerMetrics)
 	    {
 	        this(width, height);
+
 	        //jumper
+	        System.out.println("*****JUMPER*****");
+	        System.out.println("jumper = " + jumper);
+	        NormalDistribution jumpND = new NormalDistribution(60.0, 3600.0);
+	        jumper = (float)jumpND.cumulative(playerMetrics.aimlessJumps);
+	        System.out.println("aimlessJumps: " + playerMetrics.aimlessJumps);
 
 	        //collector
-	        collector = (playerMetrics.coinsCollected/playerMetrics.totalCoins + 
-	        	playerMetrics.percentageCoinBlocksDestroyed) / 2;
-
+	        System.out.println("*****COLLECTOR*****");
+	        
+	        float percentageCoinsCollected = (float)playerMetrics.coinsCollected/(float)playerMetrics.totalCoins;
+	        float percentageCoinsBlocksDestroyed = (float)playerMetrics.coinBlocksDestroyed/(float)playerMetrics.totalCoinBlocks;
+	        float percentageMixedCoinsCollected = (0.6f*percentageCoinsCollected + 0.4f*percentageCoinsBlocksDestroyed);
+	        NormalDistribution collectND = new NormalDistribution(0.5, 0.0256);
+	        collector = (float)collectND.cumulative(percentageMixedCoinsCollected);  
+	        System.out.println("collector = " + collector);
+	        System.out.println("percentage of mixed coins collected: " + percentageMixedCoinsCollected);
+	        System.out.println("coins collected: " + playerMetrics.coinsCollected);
+	        System.out.println("total coins: " + playerMetrics.totalCoins);
+	        System.out.println("percentage of coins collected: " + percentageCoinsCollected);
+	        System.out.println("coin blocks destroyed: " + playerMetrics.coinBlocksDestroyed);
+	        System.out.println("total coin blocks: " + playerMetrics.totalCoinBlocks);
+	        System.out.println("percentage coin blocks destroyed: " + percentageCoinsBlocksDestroyed);
+	        
+	        
 	        //Hunter
-	        hunter = (playerMetrics.RedTurtlesKilled+playerMetrics.GreenTurtlesKilled
-	        	+playerMetrics.ArmoredTurtlesKilled+playerMetrics.GoombasKilled
-	        	+playerMetrics.CannonBallKilled+playerMetrics.JumpFlowersKilled
-	        	+playerMetrics.ChompFlowersKilled) / playerMetrics.totalEnemies;
-
+	        System.out.println("*****HUNTER*****");
+	        float enemiesKilled = (float)(playerMetrics.RedTurtlesKilled+playerMetrics.GreenTurtlesKilled
+		        	+playerMetrics.ArmoredTurtlesKilled+playerMetrics.GoombasKilled
+		        	+playerMetrics.CannonBallKilled+playerMetrics.JumpFlowersKilled
+		        	+playerMetrics.ChompFlowersKilled);
+	        float percentageEnemiesKilled = enemiesKilled / (float)playerMetrics.totalEnemies;
+	        
+	        NormalDistribution huntND = new NormalDistribution(0.4, 0.0225);
+	        hunter = (float)huntND.cumulative(percentageEnemiesKilled);
+	        
+	        
+	        System.out.println("hunter: " + hunter);
+//	        System.out.println("RedTurtlesKilled: " + playerMetrics.RedTurtlesKilled);
+//	        System.out.println("GreenTurtlesKilled: " + playerMetrics.GreenTurtlesKilled);
+//	        System.out.println("ArmoredTurtlesKilled: " + playerMetrics.ArmoredTurtlesKilled);
+//	        System.out.println("GoombasKilled: " + playerMetrics.GoombasKilled);
+//	        System.out.println("CannonBallKilled: " + playerMetrics.CannonBallKilled);
+//	        System.out.println("JumpFlowersKilled: " + playerMetrics.JumpFlowersKilled);
+//	        System.out.println("ChompFlowersKilled: " + playerMetrics.ChompFlowersKilled);
+	        System.out.println("percentageEnemiesKilled: " + percentageEnemiesKilled);
+	        System.out.println("enemiesKilled: " + enemiesKilled);
+	        System.out.println("totalEnemies: " + playerMetrics.totalEnemies);
+	        
+	        
+	        
 	        //Destroyer
-	        destroyer = playerMetrics.percentageBocksDesotroyed;
-
-	        //Rusher
-	        system.out.println(playerMetrics.completionTime);
+	        System.out.println("*****DESTROYER*****");
+	        float percentageEmptyBlocksDestroyed = (float)playerMetrics.emptyBlocksDestroyed
+	        		/(float)playerMetrics.totalEmptyBlocks;
+	        NormalDistribution destroyND = new NormalDistribution(0.4, 0.04);
+	        destroyer = (float)destroyND.cumulative(percentageEmptyBlocksDestroyed);
+	        System.out.println("destroyer = " + destroyer);
+	        System.out.println("empty blocks destroyed: " + playerMetrics.emptyBlocksDestroyed);
+	        System.out.println("total empty blocks: " + playerMetrics.totalEmptyBlocks);
 
 
 
@@ -329,7 +371,7 @@ public class MyLevel extends Level{
 	                }
 	                else if (difficulty < 3)
 	                {
-	                    type = random.nextInt(3);
+	                    type = random.nextInt(4);
 	                }
 
 	                setSpriteTemplate(x, y, new SpriteTemplate(type, random.nextInt(35) < difficulty));

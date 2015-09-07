@@ -340,19 +340,18 @@ public class RandomLevel extends Level{
 	    {
 	        for (int x = x0; x < x1; x++)
 	        {
-	            if (random.nextInt(35) < difficulty + 1)
+	            if (random.nextInt(12) < difficulty + 1)
 	            {
 	                int type = random.nextInt(4);
 
-	                if (difficulty < 1)
-	                {
-	                    type = Enemy.ENEMY_GOOMBA;
-	                }
-	                else if (difficulty < 3)
-	                {
-	                    type = random.nextInt(3);
-	                }
-
+//	                if (difficulty < 1)
+//	                {
+//	                    type = Enemy.ENEMY_GOOMBA;
+//	                }
+//	                else if (difficulty < 3)
+//	                {
+//	                    type = random.nextInt(3);
+//	                }
 	                setSpriteTemplate(x, y, new SpriteTemplate(type, random.nextInt(35) < difficulty));
 	                ENEMIES++;
 	            }

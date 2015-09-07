@@ -13,6 +13,8 @@ public class CustomizedLevel extends Level implements LevelInterface {
 
     Random random;
 
+    public   int ENEMIES = 0; //the number of enemies the level contains
+    
     private static final int ODDS_STRAIGHT = 0;
     private static final int ODDS_HILL_STRAIGHT = 1;
     private static final int ODDS_TUBES = 2;
@@ -23,35 +25,65 @@ public class CustomizedLevel extends Level implements LevelInterface {
     private int[] odds = new int[5];
     private int totalOdds;
     
-    private int difficulty;
+    private float difficulty;
     private int type;
     private int gaps;
     private int turtles;
     private int coins;
+
+    public float jumper;
+	public float collector;
+	public float hunter;
+	public float destroyer;
+	public float rusher;
+    
+    
+    //Evaluation Array 
+    // Index 1: Gap Number (Jumper)
+    // Index 2: Coin Number (Collector)
+    // Index 3: Monster Number (Hunter)
+    // Index 4: Block Number (Destroyer)
+    public float[] eval = new float[4];
+
     
     private GamePlay playerM;
 
-    public CustomizedLevel(int width, int height, long seed, int difficulty,
-                           int type, GamePlay playerMetrics) {
+    public CustomizedLevel(int width, int height, long seed, float difficulty,
+                           int type, GamePlay playerMetrics, float[] playerEval) {
         super(width, height);
+        
         this.playerM = playerMetrics;
+        
+        jumper = playerEval[0];
+        collector = playerEval[1];
+        hunter = playerEval[2];
+        destroyer = playerEval[3];
+        
         creat(seed, difficulty, type);
+        
+        //Tweak Evaluation Function
+        eval[0] = eval[0] / 20; // Jump: 10
+        eval[1] = eval[1] / 10; // Coin: 5
+        eval[2] = eval[2] / 38; // Monster: 19
+        eval[3] = eval[3] / 14; // Block: 7
+        for(int i = 0; i < 4; i++) {
+            if(eval[i] < 0) eval[i] = 0;
+            if(eval[i] > 1) eval[i] = 1;
+        }
     }
 
-    public void creat(long seed, int difficulty, int type) {
+    public void creat(long seed, float difficulty, int type) {
         this.type = type;
         this.difficulty = difficulty;
         odds[ODDS_STRAIGHT] = 30;
         odds[ODDS_HILL_STRAIGHT] = 20;
-        odds[ODDS_TUBES] = 2 + 2 * difficulty;
-        int jumpDifficulty = 1;
+        odds[ODDS_TUBES] = (int)(2 + (float)2 * difficulty);
         // adapt the game so that it has a number of gaps proportional to the
         //number of jumps the player made in the test level. The more the jumps,
         //the more the gaps.
-        if (playerM.jumpsNumber > JumpingThreshold)
-            jumpDifficulty = 2;
-        odds[ODDS_JUMP] =  jumpDifficulty;
-        odds[ODDS_CANNONS] = -10 + 5 * difficulty;
+        
+        odds[ODDS_JUMP] = playerM.jumpsNumber/2;
+        odds[ODDS_CANNONS] = (int)(-10 + (float)10 * difficulty);
 
         if (type != LevelInterface.TYPE_OVERGROUND) {
             odds[ODDS_HILL_STRAIGHT] = 0;
@@ -93,8 +125,7 @@ public class CustomizedLevel extends Level implements LevelInterface {
             }
         }
 
-        if (type == LevelInterface.TYPE_CASTLE ||
-            type == LevelInterface.TYPE_UNDERGROUND) {
+        if (type == LevelInterface.TYPE_UNDERGROUND) {
             int ceiling = 0;
             int run = 0;
             for (int x = 0; x < width; x++) {
@@ -119,10 +150,6 @@ public class CustomizedLevel extends Level implements LevelInterface {
         int type = 0;
 
         for (int i = 0; i < odds.length; i++) {
-            if(odds[ODDS_JUMP] <= t*2+30){
-            	type = ODDS_JUMP;
-            	break;
-        }
         	if (odds[i] <= t) {
                 type = i;
             }
@@ -130,14 +157,16 @@ public class CustomizedLevel extends Level implements LevelInterface {
 
         switch (type) {
         case ODDS_STRAIGHT:
-            return buildStraight(x, maxLength, false);
+            return buildStraight(x, maxLength, true);
         case ODDS_HILL_STRAIGHT:
             return buildHillStraight(x, maxLength);
         case ODDS_TUBES:
             return buildTubes(x, maxLength);
         case ODDS_JUMP:
-            if (gaps < Constraints.gaps)
+            if (gaps < Constraints.gaps) {
+                eval[0] += 1;
                 return buildJump(x, maxLength);
+            }
             else
                 return buildStraight(x, maxLength, false);
         case ODDS_CANNONS:
@@ -226,6 +255,7 @@ public class CustomizedLevel extends Level implements LevelInterface {
         for (int x = xo; x < xo + length; x++) {
             for (int y = 0; y < height; y++) {
                 if (y >= floor) {
+                	
                     setBlock(x, y,Level.GROUND);
                 }
             }
@@ -254,7 +284,7 @@ public class CustomizedLevel extends Level implements LevelInterface {
                     occupied[xxo - xo] = true;
                     occupied[xxo - xo + l] = true;
                     addEnemyLine(xxo, xxo + l, h - 1);
-                    if (random.nextInt(4) == 0) {
+                    if (random.nextInt(4) < 3) {
                         decorate(xxo - 1, xxo + l + 1, h);
                         keepGoing = false;
                     }
@@ -284,29 +314,25 @@ public class CustomizedLevel extends Level implements LevelInterface {
     }
 
     private void addEnemyLine(int x0, int x1, int y) {
-        for (int x = x0; x < x1; x++) {
-            if (random.nextInt(50) < 25) {
-                int type = random.nextInt(4);
+        eval[2] += 1;
+        for (int x = x0; x < x1; x++)
+        {
+        	float monsterFactor = hunter * 5f * difficulty + 2f;
+            if (random.nextInt(35) < monsterFactor)
+            {
+                int type;
 
-                    type = random.nextInt(3);
-                if (turtles < Constraints.turtels) {
-                    if (type == Enemy.ENEMY_GREEN_KOOPA ||
-                        type == Enemy.ENEMY_RED_KOOPA) {
-                        turtles++;
-                        setSpriteTemplate(x, y,
-                                          new SpriteTemplate(type,
-                                random.nextInt(35) < difficulty));
-                    } else {
-                        setSpriteTemplate(x, y,
-                                          new SpriteTemplate(type,
-                                random.nextInt(35) < difficulty));
-                    }
+                if (difficulty < 1.25f)
+                {
+                	type = random.nextInt(3);
                 }
-                else{
-                	setSpriteTemplate(x, y,
-                            new SpriteTemplate(Enemy.ENEMY_GOOMBA,
-                  random.nextInt(35) < difficulty));
+                else
+                {
+                    type = random.nextInt(4);
                 }
+                
+                setSpriteTemplate(x, y, new SpriteTemplate(type, random.nextInt(30) < difficulty * 3f * hunter));
+                ENEMIES++;
             }
         }
     }
@@ -349,7 +375,7 @@ public class CustomizedLevel extends Level implements LevelInterface {
                 }
             }
         }
-
+        
         return length;
     }
 
@@ -369,6 +395,21 @@ public class CustomizedLevel extends Level implements LevelInterface {
             for (int y = 0; y < height; y++) {
                 if (y >= floor) {
                     setBlock(x, y, Level.GROUND);
+                    if(random.nextInt(10) < collector * 2f) {
+                    	setBlock(x, floor - 2 - random.nextInt(3), (byte) (2 + 2 * 16));
+                    	eval[1] += 1;
+                    }
+                    
+                    if(random.nextInt(10) < destroyer * 3f){
+                    	if(random.nextInt(10) < destroyer){
+                    		setBlock(x, floor - 4 , BLOCK_POWERUP);
+                    		eval[3] += 1;
+                    	}
+                    	else{
+                    		setBlock(x, floor - 4 , BLOCK_EMPTY);
+                    	}
+                    	    	
+                    }
                 }
             }
         }
@@ -387,10 +428,17 @@ public class CustomizedLevel extends Level implements LevelInterface {
         if (floor < 1)
             return;
         boolean rocks = true;
-
+        
+//        setBlock(xStart + 3, floor - 4, BLOCK_EMPTY);
+//        setBlock(xStart + 4, floor - 4, BLOCK_EMPTY);
+//        setBlock(xStart + 5, floor - 4, BLOCK_EMPTY);
+        
+        
         //add an enemy line above the box
-        addEnemyLine(xStart + 1, xLength - 1, floor - 1);
-
+        addEnemyLine(xStart, xLength - 1, floor - 1);
+        
+        
+        
         int s = random.nextInt(4);
         int e = random.nextInt(4);
 
@@ -408,6 +456,7 @@ public class CustomizedLevel extends Level implements LevelInterface {
         if (floor - 4 > 0) {
             if ((xLength - 1 - e) - (xStart + 1 + s) > 2) {
                 for (int x = xStart + 1 + s; x < xLength - 1 - e; x++) {
+                	
                     if (rocks) {
                         if (x != xStart + 1 && x != xLength - 2 &&
                             random.nextInt(2) == 0) {
@@ -415,20 +464,23 @@ public class CustomizedLevel extends Level implements LevelInterface {
                                 setBlock(x, floor - 4, BLOCK_POWERUP);
                             } else {
                                 if(coins < Constraints.coinBlocks){
+                                    eval[1] += 1;
                                     coins++;
                                     setBlock(x, floor - 4, BLOCK_COIN);
                                 }
                                 else{
                                     setBlock(x, floor - 4, BLOCK_EMPTY);
+                                    eval[3] += 1;
                                 }
                             }
                         } else if (random.nextInt(4) == 0) {
                             if (random.nextInt(4) == 0) {
                                 setBlock(x, floor - 4, (byte) (2 + 1 * 16));
-                            } else {
+                            } else {                               
                                 setBlock(x, floor - 4, (byte) (1 + 1 * 16));
                             }
                         } else {
+                            eval[3] += 1;
                             setBlock(x, floor - 4, BLOCK_EMPTY);
                         }
                     }

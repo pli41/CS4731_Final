@@ -43,6 +43,7 @@ public class GamePlay implements Serializable {
 	public int totalCoinBlocks; //total number of coin blocks
 	public int totalpowerBlocks; //total number of power blocks
 	public int totalCoins; //total number of coins
+	
 	public int timesOfDeathByRedTurtle; //number of times Mario died by red turtle
 	public int timesOfDeathByGoomba; //number of times Mario died by Goomba
 	public int timesOfDeathByGreenTurtle; //number of times Mario died by green turtle
@@ -50,6 +51,7 @@ public class GamePlay implements Serializable {
 	public int timesOfDeathByJumpFlower; //number of times Mario died by Jump Flower
 	public int timesOfDeathByCannonBall; //number of time Mario died by Cannon Ball
 	public int timesOfDeathByChompFlower; //number of times Mario died by Chomp Flower
+	
 	public int RedTurtlesKilled; //number of Red Turtle Mario killed
 	public int GreenTurtlesKilled;//number of Green Turtle Mario killed
 	public int ArmoredTurtlesKilled; //number of Armored Turtle Mario killed
